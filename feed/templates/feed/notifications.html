@@ -1,0 +1,36 @@
+{% extends 'feed/base.html' %}
+{% load feed_tags %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="form-page-layout">
+  <h2 class="page-title">Notifications</h2>
+  <div class="notifications-list">
+    {% for notif in notifications %}
+    <div class="notif-item {% if not notif.is_read %}notif-unread{% endif %}">
+      <a href="{% url 'profile' username=notif.sender.username %}">
+        <div class="notif-avatar">
+          {% if notif.sender.profile.avatar %}
+            <img src="{{ notif.sender.profile.avatar.url }}" alt="">
+          {% else %}
+            <span>{{ notif.sender.username|first|upper }}</span>
+          {% endif %}
+        </div>
+      </a>
+      <div class="notif-body">
+        <strong>@{{ notif.sender.username }}</strong>
+        {{ notif.get_notification_type_display }}
+        {% if notif.post %}
+          — <a href="{% url 'post_detail' pk=notif.post.id %}" class="notif-post-link">View post</a>
+        {% endif %}
+        <span class="notif-time">{{ notif.created_at|time_ago }}</span>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-feed">
+      <div class="empty-icon">🔔</div>
+      <p>No notifications yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

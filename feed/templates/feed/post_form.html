@@ -1,0 +1,31 @@
+{% extends 'feed/base.html' %}
+{% block title %}{% if edit %}Edit Post{% else %}New Post{% endif %}{% endblock %}
+{% block content %}
+<div class="form-page-layout">
+  <a href="{% url 'feed' %}" class="back-link">← Back</a>
+  <div class="form-card">
+    <h2 class="form-title">{% if edit %}Edit Post{% else %}New Post{% endif %}</h2>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Text</label>
+        {{ form.content }}
+        {% if form.content.errors %}<span class="field-error">{{ form.content.errors.0 }}</span>{% endif %}
+      </div>
+      <div class="form-group">
+        <label>Image (optional)</label>
+        {{ form.image }}
+        {% if edit and post.image %}
+          <div class="current-image"><img src="{{ post.image.url }}" alt="Current image" style="max-height:200px;border-radius:8px;margin-top:8px;"></div>
+        {% endif %}
+        {% if form.image.errors %}<span class="field-error">{{ form.image.errors.0 }}</span>{% endif %}
+      </div>
+      {% if form.non_field_errors %}<p class="field-error">{{ form.non_field_errors.0 }}</p>{% endif %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">{% if edit %}Save Changes{% else %}Post{% endif %}</button>
+        <a href="{% url 'feed' %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+Django>=4.2,<5.0
+Pillow>=10.0.0
+
+# ── For future AWS S3 deployment ──
+# django-storages>=1.14
+# boto3>=1.28
+# python-decouple>=3.8     # manage secrets via .env

@@ -1,0 +1,166 @@
+{% extends 'feed/base.html' %}
+{% load feed_tags %}
+{% load static %}
+
+{% block title %}@{{ profile_user.username }} — SocialApp{% endblock %}
+
+{% block content %}
+<div class="profile-layout">
+
+  <!-- Profile Header -->
+  <div class="profile-header-card">
+    <div class="profile-cover"></div>
+    <div class="profile-info">
+      <div class="profile-avatar-large">
+        {% if profile.avatar %}
+          <img src="{{ profile.avatar.url }}" alt="{{ profile_user.username }}">
+        {% else %}
+          <span>{{ profile_user.username|first|upper }}</span>
+        {% endif %}
+      </div>
+
+      <div class="profile-meta">
+        <div class="profile-name-row">
+          <div>
+            <h1 class="profile-display-name">
+              {{ profile_user.get_full_name|default:profile_user.username }}
+            </h1>
+            <p class="profile-handle">@{{ profile_user.username }}</p>
+          </div>
+
+          {% if is_own_profile %}
+            <a href="{% url 'edit_profile' %}" class="btn btn-outline">Edit Profile</a>
+          {% else %}
+            <button class="btn {% if is_following %}btn-outline{% else %}btn-primary{% endif %} follow-toggle-btn"
+                    data-username="{{ profile_user.username }}"
+                    data-url="{% url 'toggle_follow' username=profile_user.username %}"
+                    id="follow-btn">
+              {% if is_following %}Following{% else %}Follow{% endif %}
+            </button>
+          {% endif %}
+        </div>
+
+        {% if profile.bio %}
+          <p class="profile-bio">{{ profile.bio }}</p>
+        {% endif %}
+
+        <div class="profile-details">
+          {% if profile.location %}
+            <span class="profile-detail">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+              {{ profile.location }}
+            </span>
+          {% endif %}
+          {% if profile.website %}
+            <a href="{{ profile.website }}" class="profile-detail profile-link" target="_blank">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              {{ profile.website|truncatechars:30 }}
+            </a>
+          {% endif %}
+          <span class="profile-detail">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Joined {{ profile.created_at|date:"M Y" }}
+          </span>
+        </div>
+
+        <div class="profile-stats">
+          <div class="stat-item">
+            <strong class="stat-value">{{ profile.post_count|format_count }}</strong>
+            <span class="stat-label">Posts</span>
+          </div>
+          <div class="stat-item">
+            <strong class="stat-value" id="follower-count">{{ profile.follower_count|format_count }}</strong>
+            <span class="stat-label">Followers</span>
+          </div>
+          <div class="stat-item">
+            <strong class="stat-value">{{ profile.following_count|format_count }}</strong>
+            <span class="stat-label">Following</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Posts Grid -->
+  <div class="profile-posts">
+    <h3 class="section-heading">Posts</h3>
+
+    {% for post in posts %}
+    <article class="post-card" data-post-id="{{ post.id }}">
+      <div class="post-header">
+        <div class="post-author-link">
+          <div class="post-avatar">
+            {% if post.author.profile.avatar %}
+              <img src="{{ post.author.profile.avatar.url }}" alt="{{ post.author.username }}">
+            {% else %}
+              <span>{{ post.author.username|first|upper }}</span>
+            {% endif %}
+          </div>
+          <div class="post-author-info">
+            <strong>{{ post.author.get_full_name|default:post.author.username }}</strong>
+            <span class="post-author-handle">@{{ post.author.username }}</span>
+          </div>
+        </div>
+        <span class="post-time">{{ post.created_at|time_ago }}</span>
+
+        {% if is_own_profile %}
+        <div class="post-menu">
+          <button class="post-menu-btn" data-menu="{{ post.id }}">···</button>
+          <div class="post-dropdown hidden" id="menu-{{ post.id }}">
+            <a href="{% url 'post_edit' pk=post.id %}" class="dropdown-item">Edit</a>
+            <a href="{% url 'post_delete' pk=post.id %}" class="dropdown-item danger">Delete</a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if post.content %}<p class="post-content">{{ post.content }}</p>{% endif %}
+
+      {% if post.image %}
+      <div class="post-image-wrap">
+        <a href="{% url 'post_detail' pk=post.id %}">
+          <img src="{{ post.image.url }}" alt="Post image" class="post-image" loading="lazy">
+        </a>
+      </div>
+      {% endif %}
+
+      <div class="post-actions">
+        <button class="action-btn like-btn {% if post.id in liked_post_ids %}liked{% endif %}"
+                data-post="{{ post.id }}"
+                data-url="{% url 'toggle_like' pk=post.id %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+               fill="{% if post.id in liked_post_ids %}currentColor{% else %}none{% endif %}">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <span class="like-count">{{ post.like_count }}</span>
+        </button>
+        <a href="{% url 'post_detail' pk=post.id %}" class="action-btn comment-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span>{{ post.comment_count }}</span>
+        </a>
+      </div>
+    </article>
+    {% empty %}
+    <div class="empty-feed">
+      <div class="empty-icon">📷</div>
+      <p>No posts yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/feed.js' %}"></script>
+{% endblock %}
