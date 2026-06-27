@@ -1,4 +1,4 @@
-# 🚀 SocialApp — Django Social Media Platform
+# 🚀 [SocialApp — Django Social Media Platform] (https://ishowshraddha.pythonanywhere.com)
 
 A full-featured social media application built with Django, demonstrating core concepts like CRUD operations, ORM queries, signals, model relationships, and a modern dark UI.
 
